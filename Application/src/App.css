@@ -1,0 +1,20 @@
+.s-container {
+  border: 5px solid black;
+  margin: 20PX 10% 0 10%;
+  padding: 0 0 15px 0;
+  border-radius: 0 20px;
+}
+
+input {
+  width: 100%;
+}
+
+.add-button {
+  float: left;
+  min-width: 80px;
+}
+
+.delete-button {
+  float: left;
+  min-width: 80px;
+}
