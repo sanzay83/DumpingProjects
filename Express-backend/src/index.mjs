@@ -1,4 +1,5 @@
 import express, { response } from "express";
+import { query, validationResult, body, matchedData } from "express-validator";
 
 const app = express();
 
@@ -36,27 +37,54 @@ app.get("/", (request, response) => {
   response.status(201).send({ msg: "Hello" });
 });
 
-app.get("/api/users", (request, response) => {
-  const {
-    query: { filter, value },
-  } = request;
+app.get(
+  "/api/users",
+  query("filter")
+    .isString()
+    .notEmpty()
+    .withMessage("Must not be empty")
+    .isLength({ min: 3, max: 10 })
+    .withMessage("Must be at least 3-10 characters"),
+  (request, response) => {
+    const result = validationResult(request);
+    console.log(result);
+    const {
+      query: { filter, value },
+    } = request;
 
-  if (filter && value)
-    return response.send(
-      mockUsers.filter((user) => user[filter].includes(value))
-    );
+    if (filter && value)
+      return response.send(
+        mockUsers.filter((user) => user[filter].includes(value))
+      );
 
-  return response.send(mockUsers);
-});
+    return response.send(mockUsers);
+  }
+);
 
-app.post("/api/users", (request, response) => {
-  console.log(request.body);
-  const { body } = request;
-  const newUser = { id: mockUsers[mockUsers.length - 1].id + 1, ...body };
-  mockUsers.push(newUser);
+app.post(
+  "/api/users",
+  body("username")
+    .notEmpty()
+    .withMessage("Username cannot be empty")
+    .isLength({ min: 3, max: 32 })
+    .withMessage("Username must be at least 5-32 characters")
+    .isString()
+    .withMessage("Username must be a string"),
+  (request, response) => {
+    const result = validationResult(request);
 
-  return response.status(201).send(newUser);
-});
+    if (!result.isEmpty())
+      return response.status(400).send({ error: result.array() });
+
+    const data = matchedData(request);
+    console.log(data);
+
+    const newUser = { id: mockUsers[mockUsers.length - 1].id + 1, ...data };
+    mockUsers.push(newUser);
+
+    return response.status(201).send(newUser);
+  }
+);
 
 app.get("/api/users/:id", resolveIndexByUserId, (request, response) => {
   const { findUserIndex } = request;
